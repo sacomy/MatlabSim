@@ -1,4 +1,4 @@
-% PIDによる倒立振子の制御
+% PIDによる倒立振子の制御(位置と速度と角度と角速度を利用)
 clear
 close all
 
@@ -10,8 +10,8 @@ learn_step = 100000;
 success_count = 0;
 
 % Q-table
-load('log/logQ2.mat');
-% Q = rand(10000, 9);
+Q = rand(10000, 9);
+% load('log/logQ.mat');
 
 % digital param
 p_dig = linspace(-0.5, 0.5, 10);
@@ -21,6 +21,7 @@ w_dig = linspace(-0.5, 0.5, 10);
 
 % 報酬のプロットなど
 plot_reward = [0.0];
+plot_reward_ave = [0.0];
 sum_reward = 0;
 
 % 試行のループ
@@ -52,13 +53,12 @@ for i=1:learn_step
     plot_u(j, :) = u_j_index;
   end
   
-  if reward == 500
+  if reward >= 400
     success_count = success_count+1;
     disp('count');
-    logname = strcat('log/logOK', num2str(success_count/50), '.mat');
+    logname = strcat('log/log_success', num2str(success_count/50), '.mat');
     save(logname, 't', 'plot_state', 'plot_u', 'Q');
   else
-    % success_count = success_count-1;
   end
   if success_count > 500
     break;
@@ -70,7 +70,10 @@ for i=1:learn_step
   % 途中結果のグラフ表示
   plot_span = 1000;
   if rem(i, plot_span) == 0
-    figure(i/plot_span+1)
+    close all
+    figure(1)
+    plot(plot_reward(i-plot_span+1:i));
+    figure(2)
     plot(plot_state);
     hold on
     plot(plot_u);
@@ -78,10 +81,10 @@ for i=1:learn_step
     title('状態変数x, dx/dt, θ, dθ/dtの時間応答');
     xlabel('時間t');
     ylabel('状態変数x, dx/dt, θ, dθ/dt, 入力u');
+    figure(3)
+    plot(plot_reward_ave);
     logname = strcat('log/log', num2str(i), '.mat');
     save(logname, 't', 'plot_state', 'plot_u', 'Q');
-    figure(1)
-    plot(plot_reward);
     drawnow;
   end
   
@@ -89,6 +92,7 @@ for i=1:learn_step
     disp(i);
     disp(success_count);
     disp(sum_reward/100);
+    plot_reward_ave(:,i/100) = sum_reward/100;
     sum_reward = 0;
   end
   
@@ -97,10 +101,11 @@ end
 % plot
 figure(1)
 plot(plot_reward);
-save('log/logQ2', 'Q', 'plot_reward');
+save('log/logQ', 'Q', 'plot_reward');
 
 
-function u = Index2U(index) % 離散値の入力をindexから算出
+% 離散値の入力をindexから算出
+function u = Index2U(index)
   switch index
     case 1
       u = -10;
@@ -123,7 +128,8 @@ function u = Index2U(index) % 離散値の入力をindexから算出
   end
 end
 
-function index = State2Index(state, p_dig, v_dig, t_dig, w_dig) % 現在の状態からQtableのindexを求める
+% 現在の状態からQtableのindexを求める
+function index = State2Index(state, p_dig, v_dig, t_dig, w_dig)
   [N, ~] = histcounts(state(1), p_dig);
   [~, p] = max(N);
   [N, ~] = histcounts(state(2), v_dig);
@@ -135,6 +141,7 @@ function index = State2Index(state, p_dig, v_dig, t_dig, w_dig) % 現在の状態から
   index = p + (v-1)*10 + (t-1)*100 + (w-1)*1000;
 end
 
+% ある状態における入力uを決定する
 function u_index = GetU(LineQ, step)  
   epsilon = 0.5 * (1 / (step + 1));
   if rand()<epsilon
@@ -144,6 +151,7 @@ function u_index = GetU(LineQ, step)
   end
 end
 
+% Q-tableを更新する
 function q = UpdateQTable(Q, state_index, u_index, reward, next_state_index)
   gamma = 0.99;
   alpha = 0.5;

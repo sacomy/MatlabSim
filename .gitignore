@@ -1,5 +1,5 @@
 
-./log
-./movie
+log/
+movie/
 untitled.m
 .DS_Store

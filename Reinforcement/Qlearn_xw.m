@@ -1,4 +1,4 @@
-% PID‚É‚æ‚é“|—§Uq‚Ì§Œä
+% QŠwK‚É‚æ‚é“|—§Uq‚Ì§Œä(ˆÊ’u‚ÆŠp“x‚Ì‚İ—˜—p)
 clear
 close all
 
@@ -10,8 +10,8 @@ learn_step = 100000;
 success_count = 0;
 
 % Q-table
-% load('log/logOK4.mat');
 Q = rand(10000, 9);
+% load('log/logQXW.mat');
 
 % digital param
 p_dig = linspace(-2.0, 2.0, 100);
@@ -56,10 +56,9 @@ for i=1:learn_step
   if reward >= 400
     success_count = success_count+1;
     disp('count');
-    logname = strcat('log/logOKKK', num2str(success_count), '.mat');
+    logname = strcat('log/logsuccess', num2str(success_count), '.mat');
     save(logname, 't', 'plot_state', 'plot_u', 'Q');
   else
-    % success_count = success_count-1;
   end
   if success_count > 500
     break;
@@ -67,14 +66,6 @@ for i=1:learn_step
   
   sum_reward = sum_reward + reward;
   plot_reward(:, i) = reward;
-   
-  if rem(i, 100) == 0
-    disp(i);
-    disp(success_count);
-    disp(sum_reward/100);
-    plot_reward_ave(:,i/100) = sum_reward/100;
-    sum_reward = 0;
-  end
   
   % “r’†Œ‹‰Ê‚ÌƒOƒ‰ƒt•\¦
   plot_span = 1000;
@@ -96,13 +87,21 @@ for i=1:learn_step
     save(logname, 't', 'plot_state', 'plot_u', 'Q');
     drawnow;
   end
+   
+  if rem(i, 100) == 0
+    disp(i);
+    disp(success_count);
+    disp(sum_reward/100);
+    plot_reward_ave(:,i/100) = sum_reward/100;
+    sum_reward = 0;
+  end
   
 end
 
 % plot
 figure(1)
 plot(plot_reward);
-save('log/logQ3', 'Q', 'plot_reward');
+save('log/logQXW', 'Q', 'plot_reward');
 
 
 function u = Index2U(index) % —£U’l‚Ì“ü—Í‚ğindex‚©‚çZo
@@ -137,8 +136,7 @@ function index = State2Index(state, p_dig, v_dig) % Œ»İ‚Ìó‘Ô‚©‚çQtable‚Ìindex‚
 end
 
 function u_index = GetU(LineQ, step)  
-  epsilon = 0.01;
-  % epsilon = 0.5 * (1 / (step + 1));
+  epsilon = 0.5 * (1 / (step + 1));
   if rand()<epsilon
     u_index = fix(randi(9));
   else

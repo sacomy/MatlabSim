@@ -2,9 +2,8 @@
 clear
 close all
 
-h = figure(1);
-filename = 'testAnimated.gif'; % 保存する名前
-load('log/log1000.mat');
+h = figure();
+load('log/log.mat');
 
 w = waitforbuttonpress;
 
@@ -14,16 +13,13 @@ max_axis = 0.0;
 pendulum_l = 0.1;
 step_skip = 4;
 step_time = 0.01 * step_skip;
-sizen= 512; % rgb2ind()の関数でRGBイメージをインデックス付きイメージに変換する…らしい(よくわからん)。
-            % ただ、gifにアニメーションとして保存するサイズに対してこのsizeが小さいと"権限がない"
-            % とかのエラーがでる。そうなったらこのsizeを大きくしてみよう。    
-delaytime = step_time; % 画像を送る（更新する）間隔。単位は秒。つまり今回は0.5秒で切り替わる
 
 [car, plot_point] = prepare_plot(plot_state(count,1), offset_car, plot_state(count,1), pendulum_l);
-axis([-0.5 0.5 -0.10 0.20]);
-drawnow;
+axis equal
+axis([-0.3 0.3 -0.1 0.2]);
+drawnow
 
-tic; % ストップウォッチの開始
+tic;
 start_toc = toc;
 while(1)
   car_x = [plot_state(count,1)-offset_car, plot_state(count,1)-offset_car, plot_state(count,1)+offset_car, plot_state(count,1)+offset_car, plot_state(count,1)-offset_car];
@@ -41,7 +37,7 @@ while(1)
   end_toc = toc;
   process_time = end_toc - start_toc;
   if process_time > step_time
-    disp('step_skip too small. process_time is');
+    disp('step_skip too small. now process_time is');
     disp(process_time);
     break;
   end
