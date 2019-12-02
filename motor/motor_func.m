@@ -1,6 +1,5 @@
 % ÉÇÅ[É^Å[ånÇÃèÛë‘ï˚íˆéÆ
-function dx = motor_func(t,x)
-  global motor_u
+function dx = motor_func(x, u)
   J=0.5;
   D=0.2;
   L=0.00034;
@@ -9,7 +8,7 @@ function dx = motor_func(t,x)
   K_e=6.0;
 
   A = [- R/L*x(1) - K_e/L*x(2); K_tau/J*x(1) - D/J*x(2)];
-  B = [motor_u; 0];
+  B = [u; 0];
 
   dx = A+B;
 end
